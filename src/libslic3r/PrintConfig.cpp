@@ -3216,6 +3216,7 @@ void PrintConfigDef::init_fff_params()
     def             = this->add("gyroid_optimized", coBool);
     def->label      = L("Z-buckling bias optimization (experimental)");
     def->category   = L("Strength");
+    def->mode       = comAdvanced;
     def->tooltip    = L("Tightens the gyroid wave along the Z (vertical) axis at low infill density "
                         "to shorten the effective vertical column length and improve Z-axis compression "
                         "buckling resistance. Filament use is preserved. No effect at ~30% sparse infill "
