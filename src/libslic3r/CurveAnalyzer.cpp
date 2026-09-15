@@ -168,7 +168,7 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths, ECurveAnalyseMod
                 //split paths[i]
                 ExtrusionPath current_path = paths[i];
                 while (j < curvature_list.size()) {
-                    Polyline left, right;
+                    Polyline3 left, right;
                     current_path.polyline.split_at(curvature_list[j].first.first, &left, &right);
                     ExtrusionPath left_path(left, current_path);
                     left_path.set_curve_degree(current_curva_norm);

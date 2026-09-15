@@ -4222,14 +4222,14 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min      = -100;
     def->max      = 100;
-    def->mode     = comExpert;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("zaa_enabled", coBool);
     def->label    = L("Z contouring enabled");
     def->category = L("Quality");
     def->tooltip  = L("Enable Z-layer contouring (aka Z-layer anti-aliasing)");
-    def->mode     = comExpert;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("zaa_minimize_perimeter_height", coFloat);
@@ -4240,14 +4240,14 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°");
     def->min      = 0;
     def->max      = 90;
-    def->mode     = comExpert;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("zaa_dont_alternate_fill_direction", coBool);
     def->label    = L("Don't alternate fill direction");
     def->category = L("Quality");
     def->tooltip  = L("Disable alternating fill direction when using Z contouring");
-    def->mode     = comExpert;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("zaa_min_z", coFloat);
@@ -4257,7 +4257,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min      = 0;
     def->max      = 100;
-    def->mode     = comExpert;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.05));
 
     def = this->add("layer_change_gcode", coString);
