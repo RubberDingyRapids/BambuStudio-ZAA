@@ -25,7 +25,7 @@ jobs:
 
       - name: Pack deps
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip -mx1 BambuStudio_dep_win64.zip "${{ github.workspace }}\depsuild\BambuStudio_dep"'
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip -mx1 BambuStudio_dep_win64.zip "${{ github.workspace }}/deps/build/BambuStudio_dep"'
 
       - name: Upload deps artifact
         uses: actions/upload-artifact@v6
