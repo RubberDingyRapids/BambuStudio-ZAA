@@ -1,0 +1,35 @@
+name: Export Windows deps
+
+# Manual only. Restores the cached Windows dependency build (made by the
+# Build Windows (ZAA) workflow) and uploads it as a downloadable artifact so a
+# local build can reuse it instead of compiling the deps.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  export_deps:
+    name: Export deps
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Restore cached deps
+        id: restore
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ github.workspace }}/deps/build/BambuStudio_dep
+          key: windows-latest-cache-bambustudio_deps-build-${{ hashFiles('deps/**') }}
+          fail-on-cache-miss: true
+
+      - name: Pack deps
+        shell: pwsh
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip -mx1 BambuStudio_dep_win64.zip "${{ github.workspace }}/deps/build/BambuStudio_dep"'
+
+      - name: Upload deps artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: BambuStudio_dep_win64
+          path: BambuStudio_dep_win64.zip
+          compression-level: 0
