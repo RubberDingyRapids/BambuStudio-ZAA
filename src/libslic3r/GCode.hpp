@@ -12,6 +12,7 @@
 #include "GCode/GCodeEditor.hpp"
 #include "GCode/RetractWhenCrossingPerimeters.hpp"
 #include "GCode/SpiralVase.hpp"
+#include "GCode/SmallAreaInfillFlowCompensator.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 #include "GCode/SeamPlacer.hpp"
@@ -619,6 +620,8 @@ private:
     bool                                m_scarf_seam_start;
     std::unique_ptr<GCodeEditor>        m_gcode_editer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
+    // Orca: small area infill flow compensation
+    std::unique_ptr<SmallAreaInfillFlowCompensator> m_small_area_infill_flow_compensator;
 #ifdef HAS_PRESSURE_EQUALIZER
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
 #endif /* HAS_PRESSURE_EQUALIZER */
@@ -678,6 +681,8 @@ private:
 
     double calc_max_volumetric_speed(const double layer_height, const double line_width, const std::string co_str);
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool set_holes_and_compensation_speed = false, bool is_first_slope = false);
+    // Orca: returns true when the small area infill flow compensation should be applied to this path
+    bool        _needSAFC(const ExtrusionPath &path);
     ExtrusionPaths set_speed_transition(std::vector<ExtrusionPaths> &paths);
     void split_and_mapping_speed(double other_path_v, double final_v, ExtrusionPaths &this_path, double max_smooth_length, ExtrusionPaths &interpolated_paths, bool split_from_left = true);
     bool is_enable_overhang_speed();

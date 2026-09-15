@@ -178,6 +178,8 @@ set(lisbslic3r_sources
     GCode/ThumbnailData.hpp
     GCode/GCodeEditor.cpp
     GCode/GCodeEditor.hpp
+    GCode/PchipInterpolatorHelper.cpp
+    GCode/PchipInterpolatorHelper.hpp
     GCode/PostProcessor.cpp
     GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
@@ -186,6 +188,8 @@ set(lisbslic3r_sources
     GCode/PrintExtents.hpp
     GCode/RetractWhenCrossingPerimeters.cpp
     GCode/RetractWhenCrossingPerimeters.hpp
+    GCode/SmallAreaInfillFlowCompensator.cpp
+    GCode/SmallAreaInfillFlowCompensator.hpp
     GCode/SpiralVase.cpp
     GCode/SpiralVase.hpp
     GCode/SeamPlacer.cpp

@@ -227,6 +227,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "ams_filament_unload_time_ams",
         "ams_filament_unload_time_ams_lite",
         "ams_filament_unload_time_n3f_s",
+        // Orca: both features only affect G-code export
+        "small_area_infill_flow_compensation",
+        "small_area_infill_flow_compensation_model",
+        "wipe_before_external_loop",
     };
 
     static std::unordered_set<std::string> steps_ignore;
