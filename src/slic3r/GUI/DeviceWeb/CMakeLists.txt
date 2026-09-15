@@ -221,27 +221,38 @@ set(DEVICE_PAGE_BUILD_INPUTS
     "${DEVICE_PAGE_SRC_DIR}/i18next-parser.config.js"
 )
 
-add_custom_command(
-    OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
-    COMMAND echo "Running PNPM install"
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} install --store-dir ${PNPM_STORE_DIR}
-    COMMAND echo "Running PNPM run build"
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} run build
-    COMMAND echo "Removing page target directory"
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_TARGET_DIR}"
-    COMMAND echo "Creating page target directory"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_TARGET_DIR}"
-    COMMAND echo "Copying directory to target"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_DIST_DIR}" "${DEVICE_PAGE_TARGET_DIR}"
-    COMMAND echo "Create device page stamp file"
-    COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_BUILD_STAMP}"
-    DEPENDS ${DEVICE_PAGE_BUILD_INPUTS}
-    WORKING_DIRECTORY ${DEVICE_PAGE_SRC_DIR}
-    COMMENT "Building device_page web bundle when sources change..."
-    VERBATIM
-)
+option(SLIC3R_SKIP_DEVICE_PAGE_BUILD "Skip the pnpm/vite build of the device web page and use the prebuilt resources/web/device_page/dist (for local builds where Node cannot run in the source tree)" OFF)
+if(SLIC3R_SKIP_DEVICE_PAGE_BUILD)
+    add_custom_command(
+        OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
+        COMMAND ${CMAKE_COMMAND} -E echo "Skipping device_page web build (SLIC3R_SKIP_DEVICE_PAGE_BUILD=ON); using prebuilt ${DEVICE_PAGE_TARGET_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_BUILD_STAMP}"
+        COMMENT "device_page web build skipped"
+        VERBATIM
+    )
+else()
+    add_custom_command(
+        OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
+        COMMAND echo "Running PNPM install"
+        COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} install --store-dir ${PNPM_STORE_DIR}
+        COMMAND echo "Running PNPM run build"
+        COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} run build
+        COMMAND echo "Removing page target directory"
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_TARGET_DIR}"
+        COMMAND echo "Creating page target directory"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_TARGET_DIR}"
+        COMMAND echo "Copying directory to target"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_DIST_DIR}" "${DEVICE_PAGE_TARGET_DIR}"
+        COMMAND echo "Create device page stamp file"
+        COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_BUILD_STAMP}"
+        DEPENDS ${DEVICE_PAGE_BUILD_INPUTS}
+        WORKING_DIRECTORY ${DEVICE_PAGE_SRC_DIR}
+        COMMENT "Building device_page web bundle when sources change..."
+        VERBATIM
+    )
 
-# Not ALL: rebuilt only when a dependent target (libslic3r_gui / BambuStudio) is built.
+    # Not ALL: rebuilt only when a dependent target (libslic3r_gui / BambuStudio) is built.
+endif()
 add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
 
 list(APPEND SLIC3R_GUI_SOURCES
