@@ -1,6 +1,7 @@
 #include "GCodeWriter.hpp"
 #include "CustomGCode.hpp"
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -846,7 +847,11 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
     // Check if Z actually changes (at export precision) before emitting it.
     // ZAA sloped extrusions call this for every segment, but many consecutive
     // segments share the same quantized Z — emitting it every time is redundant.
-    bool z_changed = (GCodeG1Formatter::quantize_xyzf(point(2)) != GCodeG1Formatter::quantize_xyzf(m_pos(2)));
+    auto quantize_xyzf = [](double v) {
+        const double scale = std::pow(10., double(GCodeFormatter::XYZF_EXPORT_DIGITS));
+        return std::round(v * scale) / scale;
+    };
+    bool z_changed = (quantize_xyzf(point(2)) != quantize_xyzf(m_pos(2)));
 
     m_pos = point;
     m_lifted = 0;

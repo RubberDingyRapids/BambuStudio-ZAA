@@ -741,14 +741,14 @@ struct FakeWipeTower
         std::vector<ExtrusionPaths> paths;
         for (float h = 0.f; h < height; h += layer_height) {
             ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_height);
-            path.polyline = Polyline3(Polyline{{minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner}});
+            path.polyline = Polyline3(Polyline{minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner});
             paths.push_back({path});
 
             if (h == 0.f) { // add brim
                 ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, layer_height);
                 Point         wtbminCorner = {minCorner - Point{bd, bd}};
                 Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
-                fakeBrim.polyline          = Polyline3(Polyline{{wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner}});
+                fakeBrim.polyline          = Polyline3(Polyline{wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner});
                 paths.back().push_back(fakeBrim);
             }
         }

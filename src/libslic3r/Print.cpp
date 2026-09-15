@@ -4341,7 +4341,10 @@ static void to_json(json& j, const Polyline& poly_line) {
 }
 
 static void to_json(json& j, const ExtrusionPath& extrusion_path) {
-    j[JSON_EXTRUSION_POLYLINE] = extrusion_path.polyline;
+    // ZAA: polyline is a Polyline3 now, serialize its 2D projection (plus the arc fitting data).
+    Polyline serialized_polyline = extrusion_path.polyline.to_polyline();
+    serialized_polyline.fitting_result = extrusion_path.polyline.fitting_result;
+    j[JSON_EXTRUSION_POLYLINE] = serialized_polyline;
     j[JSON_EXTRUSION_OVERHANG_DEGREE] = extrusion_path.overhang_degree;
     j[JSON_EXTRUSION_CURVE_DEGREE] = extrusion_path.curve_degree;
     j[JSON_EXTRUSION_MM3_PER_MM] = extrusion_path.mm3_per_mm;
@@ -4621,6 +4624,7 @@ static void from_json(const json& j, Polyline& poly_line) {
 static void from_json(const json& j, ExtrusionPath& extrusion_path) {
     Polyline temp_polyline = j[JSON_EXTRUSION_POLYLINE];
     extrusion_path.polyline = Polyline3(temp_polyline);
+    extrusion_path.polyline.fitting_result = temp_polyline.fitting_result;
     extrusion_path.overhang_degree        =    j[JSON_EXTRUSION_OVERHANG_DEGREE];
     extrusion_path.curve_degree           =    j[JSON_EXTRUSION_CURVE_DEGREE];
     extrusion_path.mm3_per_mm             =    j[JSON_EXTRUSION_MM3_PER_MM];

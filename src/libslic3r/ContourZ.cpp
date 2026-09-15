@@ -10,6 +10,7 @@
 #include <cmath>
 #include <initializer_list>
 #include <string>
+#include <typeinfo>
 
 namespace Slic3r {
 

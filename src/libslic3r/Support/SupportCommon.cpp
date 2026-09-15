@@ -1198,7 +1198,7 @@ static void modulate_extrusion_by_overlapping_layers(
     for (ExtrusionEntitiesPtr::const_iterator it = extrusions_in_out.begin(); it != extrusions_in_out.end(); ++ it) {
         ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(*it);
         assert(path != nullptr);
-        bbox.merge(get_extents(path->polyline));
+        bbox.merge(get_extents(path->polyline.to_polyline()));
     }
     SVG svg(debug_out_path("support-fragments-%d-%lf.svg", iRun, this_layer.print_z).c_str(), bbox);
     const float transparency = 0.5f;
