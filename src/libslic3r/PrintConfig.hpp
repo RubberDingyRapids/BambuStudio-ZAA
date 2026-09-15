@@ -1188,6 +1188,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 seam_slope_inner_walls))
     ((ConfigOptionBool,                 embedding_wall_into_infill))
     ((ConfigOptionBool,                 alternate_extra_wall))
+
+    // Orca: Z Anti-Aliasing (aka Z Contouring)
+    ((ConfigOptionBool, zaa_enabled))
+    ((ConfigOptionBool, zaa_dont_alternate_fill_direction))
+    ((ConfigOptionFloat, zaa_min_z))
+    ((ConfigOptionFloat, zaa_minimize_perimeter_height))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

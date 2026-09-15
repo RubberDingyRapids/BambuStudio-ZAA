@@ -102,7 +102,7 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
                 for (int idx = start_index; idx < i; idx++) {
                     bool curr_floating = lines[idx].is_a_floating && lines[idx].is_b_floating;
                     if (curr_floating != is_floating && length != 0) {
-                        path.polyline.append(lines[idx].a);
+                        path.polyline.append(Point3(lines[idx].a));
                         if (is_floating)
                             path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);
                         set_flow_for_path(path, sum / length);
@@ -113,9 +113,9 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
                     double line_length = lines[idx].length();
                     length += line_length;
                     sum += line_length * (lines[idx].a_width + lines[idx].b_width) * 0.5;
-                    path.polyline.append(lines[idx].a);
+                    path.polyline.append(Point3(lines[idx].a));
                 }
-                path.polyline.append(lines[i].a);
+                path.polyline.append(Point3(lines[i].a));
                 if (length > SCALED_EPSILON) {
                     if (lines[i].is_a_floating && lines[i].is_b_floating)
                         path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);
@@ -177,7 +177,7 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
         for (int idx = start_index; idx < final_size; idx++) {
             bool curr_floating = lines[idx].is_a_floating && lines[idx].is_b_floating;
             if (curr_floating!= is_floating && length != 0) {
-                path.polyline.append(lines[idx].a);
+                path.polyline.append(Point3(lines[idx].a));
                 if(is_floating)
                     path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);
                 set_flow_for_path(path, sum / length);
@@ -187,10 +187,10 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
             double line_length = lines[idx].length();
             length += line_length;
             sum += line_length * (lines[idx].a_width + lines[idx].b_width) * 0.5;
-            path.polyline.append(lines[idx].a);
+            path.polyline.append(Point3(lines[idx].a));
 
         }
-        path.polyline.append(lines[final_size - 1].b);
+        path.polyline.append(Point3(lines[final_size - 1].b));
         if (length > SCALED_EPSILON) {
             if (lines[final_size - 1].is_a_floating && lines[final_size - 1].is_b_floating)
                 path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);

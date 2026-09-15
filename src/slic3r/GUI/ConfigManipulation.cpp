@@ -1060,8 +1060,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {"support_ironing_pattern", "support_ironing_speed", "support_ironing_flow", "support_ironing_spacing", "support_ironing_direction", "support_ironing_inset"})
         toggle_line(el, config->opt_bool("enable_support_ironing") && has_ironing_support);
 
+    bool has_zaa = config->opt_bool("zaa_enabled");
+    for (auto el : {"zaa_minimize_perimeter_height", "zaa_min_z", "zaa_dont_alternate_fill_direction"})
+        toggle_line(el, has_zaa);
+
     // bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_dist_to_rod", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
+
     //     toggle_field(el, have_sequential_printing);
 
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");

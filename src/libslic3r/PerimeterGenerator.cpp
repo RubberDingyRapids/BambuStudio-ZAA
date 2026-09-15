@@ -428,11 +428,12 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
-            chain_and_reorder_extrusion_paths(paths, &paths.front().first_point());
+            Point start_pt = Point(paths.front().first_point().x(), paths.front().first_point().y());
+            chain_and_reorder_extrusion_paths(paths, &start_pt);
         } else {
             ExtrusionPath path(role);
             //BBS.
-            path.polyline = polygon.split_at_first_point();
+            path.polyline = Polyline3(polygon.split_at_first_point());
             path.overhang_degree = 0;
             path.curve_degree = 0;
             path.mm3_per_mm = extrusion_mm3_per_mm;
@@ -730,11 +731,13 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     };
                     std::unordered_map<Point, PointInfo, PointHash> point_occurrence;
                     for (const ExtrusionPath& path : paths) {
-                        ++point_occurrence[path.polyline.first_point()].occurrence;
-                        ++point_occurrence[path.polyline.last_point()].occurrence;
+                        Point first_p = path.polyline.first_point().to_point();
+                        Point last_p  = path.polyline.last_point().to_point();
+                        ++point_occurrence[first_p].occurrence;
+                        ++point_occurrence[last_p].occurrence;
                         if (path.role() == erOverhangPerimeter) {
-                            point_occurrence[path.polyline.first_point()].is_overhang = true;
-                            point_occurrence[path.polyline.last_point()].is_overhang = true;
+                            point_occurrence[first_p].is_overhang = true;
+                            point_occurrence[last_p].is_overhang = true;
                         }
                     }
 

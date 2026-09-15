@@ -29,7 +29,8 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths, ECurveAnalyseMod
         else {
             paths_length[i] = paths_length[i - 1] + paths[i].polyline.length();
         }
-        polygon.points.insert(polygon.points.end(), paths[i].polyline.points.begin(), paths[i].polyline.points.end() - 1);
+        Points path_points = to_points(paths[i].polyline.points);
+        polygon.points.insert(polygon.points.end(), path_points.begin(), path_points.end() - 1);
     }
     // 1 generate point series which is on the line of polygon, point distance along the polygon is smaller than 1mm
     polygon.densify(scale_(curvatures_densify_width));
