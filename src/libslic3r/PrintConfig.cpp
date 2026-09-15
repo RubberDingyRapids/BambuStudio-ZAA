@@ -241,7 +241,9 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "crosszag",           ipCrossZag },
     { "lockedzag",          ipLockedZag },
     { "2dlattice",          ip2DLattice  },
-    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral }
+    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral },
+    { "tpmsd",              ipTpmsD },
+    { "tpmsfk",             ipTpmsFK }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -3183,6 +3185,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("crosszag");
     def->enum_values.push_back("lockedzag");
     def->enum_values.push_back("2dlattice");
+    def->enum_values.push_back("tpmsd");
+    def->enum_values.push_back("tpmsfk");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -3205,7 +3209,18 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Cross Zag"));
     def->enum_labels.push_back(L("Locked Zag"));
     def->enum_labels.push_back(L("2D Lattice"));
+    def->enum_labels.push_back(L("TPMS-D"));
+    def->enum_labels.push_back(L("TPMS-FK"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
+
+    def             = this->add("gyroid_optimized", coBool);
+    def->label      = L("Z-buckling bias optimization (experimental)");
+    def->category   = L("Strength");
+    def->tooltip    = L("Tightens the gyroid wave along the Z (vertical) axis at low infill density "
+                        "to shorten the effective vertical column length and improve Z-axis compression "
+                        "buckling resistance. Filament use is preserved. No effect at ~30% sparse infill "
+                        "density and above. Only applies when Sparse infill pattern is set to Gyroid.");
+    def->set_default_value(new ConfigOptionBool(false));
 
     def                = this->add("locked_skin_infill_pattern", coEnum);
     def->label         = L("Skin infill pattern");

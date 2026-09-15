@@ -84,6 +84,10 @@ struct FillParams
 
     InfillPattern pattern{ ipRectilinear };
 
+    // Only meaningful when pattern == ipGyroid: use the marching-squares
+    // optimized (Z-buckling bias) wave generator instead of the standard one.
+    bool        gyroid_optimized { false };
+
     // BBS
     Flow            flow;
     ExtrusionRole   extrusion_role{ ExtrusionRole(0) };

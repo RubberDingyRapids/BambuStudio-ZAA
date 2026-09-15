@@ -920,9 +920,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool support_multiline_infill = pattern == ipCubic || pattern == ipGrid || pattern == ipRectilinear || pattern == ipStars || pattern == ipAlignedRectilinear ||
                                     pattern == ipGyroid || pattern == ipHoneycomb || pattern == ipLightning || pattern == ip3DHoneycomb ||
-                                    pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
+                                    pattern == ipAdaptiveCubic || pattern == ipSupportCubic || pattern == ipTpmsD || pattern == ipTpmsFK;
 
     toggle_line("fill_multiline", have_infill && support_multiline_infill);
+    // gyroid_optimized only applies when the sparse infill pattern is gyroid; hide the whole line otherwise.
+    toggle_line("gyroid_optimized", have_infill && pattern == ipGyroid);
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("sparse_infill_anchor_max")->value > 0;
     toggle_line("sparse_infill_anchor", has_infill_anchors);

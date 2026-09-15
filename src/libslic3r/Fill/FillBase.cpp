@@ -25,6 +25,8 @@
 #include "FillConcentricInternal.hpp"
 #include "FillCrossHatch.hpp"
 #include "FillFloatingConcentric.hpp"
+#include "FillTpmsD.hpp"
+#include "FillTpmsFK.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
 
@@ -37,6 +39,8 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipHoneycomb:           return new FillHoneycomb();
     case ip3DHoneycomb:         return new Fill3DHoneycomb();
     case ipGyroid:              return new FillGyroid();
+    case ipTpmsD:               return new FillTpmsD();
+    case ipTpmsFK:              return new FillTpmsFK();
     case ipRectilinear:         return new FillRectilinear();
     case ipAlignedRectilinear:  return new FillAlignedRectilinear();
     case ipCrossHatch:          return new FillCrossHatch();
