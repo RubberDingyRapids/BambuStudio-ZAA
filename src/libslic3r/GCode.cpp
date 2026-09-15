@@ -2390,6 +2390,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_enable_extrusion_role_markers = false;
 #endif /* HAS_PRESSURE_EQUALIZER */
 
+    // Orca: small area infill flow compensation. The switch lives in the region config, so it may be
+    // enabled by a per object/region override even when the global print preset has it off.
+    if (!print.config().small_area_infill_flow_compensation_model.empty()) {
+        bool safc_enabled = m_config.small_area_infill_flow_compensation.value;
+        for (size_t idx = 0; !safc_enabled && idx < print.num_print_regions(); ++idx)
+            safc_enabled = print.get_print_region(idx).config().small_area_infill_flow_compensation.value;
+        if (safc_enabled)
+            m_small_area_infill_flow_compensator = make_unique<SmallAreaInfillFlowCompensator>(print.config());
+    }
+
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
     file.write_format("; %s\n", Slic3r::header_slic3r_generated().c_str());
@@ -6263,6 +6273,68 @@ std::string GCode::extrude_loop(const ExtrusionLoop &loop_ref, const std::string
     // extrude along the path
     std::string gcode;
 
+    // Orca: port of the "wipe inside before extruding an external perimeter" feature.
+    // The de-retraction is done a little bit inside the model, so that any over extrusion produced by
+    // it ends up behind the outer wall instead of on the visible surface.
+    // Orca additionally walks the region perimeter list to prove that the de-retraction point really
+    // sits on material. Studio's extrude_loop() has no such list, so the same intent is approximated
+    // with state that is already tracked: the region must actually own an internal wall
+    // (wall_loops > 1) and the extrusion emitted immediately before this loop must have been an
+    // internal perimeter. m_last_processor_extrusion_role is used rather than m_last_extrusion_role
+    // because the latter is only maintained when the pressure equalizer role markers are enabled,
+    // which is not the case in a stock Studio build.
+    if (m_config.wipe_before_external_loop.value &&
+        paths.front().role() == erExternalPerimeter &&
+        paths.front().polyline.points.size() > 1 &&
+        paths.back().polyline.points.size() > 1 &&
+        m_config.wall_loops.value > 1 &&
+        m_last_processor_extrusion_role == erPerimeter) {
+        const bool   is_full_loop_ccw = loop.polygon().is_counter_clockwise();
+        const bool   is_hole_loop     = (loop.loop_role() & elrPerimeterHole) != 0;
+        const double nozzle_diam      = EXTRUDER_CONFIG(nozzle_diameter);
+
+        // note: previous & next are inverted, the wipe move runs in the opposite direction, we are "rewinding"
+        const Point previous_point = paths.front().polyline.points[1].to_point();
+        const Point current_point  = paths.front().polyline.points.front().to_point();
+        Point       next_point     = paths.back().polyline.points.back().to_point();
+
+        // can happen when the seam gap is null
+        if (next_point == current_point)
+            next_point = paths.back().polyline.points[paths.back().polyline.points.size() - 2].to_point();
+
+        Point a = next_point;     // second point
+        Point b = previous_point; // second to last point
+        if (is_hole_loop ? !is_full_loop_ccw : is_full_loop_ccw)
+            std::swap(a, b);
+
+        double angle = current_point.ccw_angle(a, b) / 3.;
+        // turn outwards if contour, turn inwards if hole
+        if (is_hole_loop ? !is_full_loop_ccw : is_full_loop_ccw)
+            angle *= -1.;
+
+        const Vec2d  current_pos = current_point.cast<double>();
+        const Vec2d  next_pos    = next_point.cast<double>();
+        const Vec2d  vec_dist    = next_pos - current_pos;
+        const double vec_norm    = vec_dist.norm();
+        if (vec_norm > EPSILON) {
+            // The offset distance is the minimum of half the nozzle diameter and half the line width of the
+            // perimeter about to be printed. This minimizes the chance of de-retracting on top of a thin
+            // neighbouring wall produced by Arachne.
+            const double dist = std::min(scale_(nozzle_diam) * 0.5, scale_(paths.front().width) * 0.5);
+
+            Point pt = Point((current_pos + vec_dist * (2. * dist / vec_norm)).cast<coord_t>());
+            pt.rotate(angle, current_point);
+
+            // extrude instead of travel_to_xy so that the de-retraction is emitted at the inner point
+            ExtrusionPath fake_path_wipe(Polyline3(Points3{Point3(pt.x(), pt.y(), 0), Point3(current_point.x(), current_point.y(), 0)}),
+                                         paths.front());
+            fake_path_wipe.mm3_per_mm  = 0;
+            fake_path_wipe.z_contoured = false;
+            fake_path_wipe.set_force_no_extrusion(true);
+            gcode += this->extrude_path(fake_path_wipe, "move inwards before retraction/seam", speed);
+        }
+    }
+
     const auto  speed_for_path = [&speed, &small_peri_speed](const ExtrusionPath &path) {
         // don't apply small perimeter setting for bridge/non-perimeters
         const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0;
@@ -7133,6 +7205,27 @@ double GCode::calc_max_volumetric_speed(const double layer_height, const double 
     return res;
 }
 
+// Orca: the small area infill flow compensation model is calibrated on straight, monotonic solid
+// infill lines. Only apply it when the solid infill pattern in use is one of those.
+bool GCode::_needSAFC(const ExtrusionPath &path)
+{
+    if (!m_small_area_infill_flow_compensator || !m_config.small_area_infill_flow_compensation.value)
+        return false;
+
+    static const InfillPattern supported_patterns[] = {
+        InfillPattern::ipRectilinear,
+        InfillPattern::ipAlignedRectilinear,
+        InfillPattern::ipMonotonic,
+        InfillPattern::ipMonotonicLine,
+    };
+
+    return std::any_of(std::begin(supported_patterns), std::end(supported_patterns), [&](const InfillPattern pattern) {
+        return (this->on_first_layer() && m_config.bottom_surface_pattern == pattern) ||
+               (path.role() == erSolidInfill && m_config.internal_solid_infill_pattern == pattern) ||
+               (path.role() == erTopSolidInfill && m_config.top_surface_pattern == pattern);
+    });
+}
+
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed, bool use_seperate_speed, bool is_first_slope)
 {
     std::string gcode;
@@ -7537,6 +7630,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double path_length = 0.;
     {
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
+        //Orca: small area infill flow compensation, evaluated once per path
+        const bool need_safc = this->_needSAFC(path);
         //BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
         //Attention: G2 and G3 is not supported in spiral_mode mode
         //ZAA: a Z contoured path carries a different Z per point, arc fitting cannot express that
@@ -7552,6 +7647,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 // BBS: extursion cmd should E0 on cmd line
                 if (line_length < EPSILON) continue;
                 path_length += line_length;
+
+                //Orca: small area infill flow compensation
+                double dE = e_per_mm * line_length;
+                if (need_safc)
+                    dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
 
                 if (path.z_contoured) {
                     //ZAA: emit the contoured Z of every point and scale the extrusion by the
@@ -7569,16 +7669,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
                     gcode += m_writer.extrude_to_xyz(
                         Vec3d(dest2d.x(), dest2d.y(), z),
-                        e_per_mm * line_length * extrusion_ratio,
+                        dE * extrusion_ratio,
                         comment, path.is_force_no_extrusion());
                 } else if (sloped == nullptr) {
                     gcode += m_writer.extrude_to_xy(
                         this->point_to_gcode(line.b.to_point()),
-                        e_per_mm * line_length,
+                        dE,
                         comment,path.is_force_no_extrusion());
                 } else {
                     // Sloped extrusion
-                    auto dE = e_per_mm * line_length;
                     auto [z_ratio, e_ratio, slope_speed] = sloped->interpolate(path_length / total_length);
                     //FIX: cooling need to apply correctly
                     //gcode += m_writer.set_speed(slope_speed * 60, "", comment);
@@ -7605,9 +7704,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         if (line_length < EPSILON)
                             continue;
                         path_length += line_length;
+                        //Orca: small area infill flow compensation
+                        double dE = e_per_mm * line_length;
+                        if (need_safc)
+                            dE = m_small_area_infill_flow_compensator->modify_flow(line_length, dE, path.role());
                         gcode += m_writer.extrude_to_xy(
                             this->point_to_gcode(line.b),
-                            e_per_mm * line_length,
+                            dE,
                             comment, path.is_force_no_extrusion());
                         check_and_insert_timelapse(line.b);
                     }
@@ -7622,10 +7725,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         continue;
                     const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
                     path_length += arc_length;
+                    //Orca: small area infill flow compensation
+                    double dE = e_per_mm * arc_length;
+                    if (need_safc)
+                        dE = m_small_area_infill_flow_compensator->modify_flow(arc_length, dE, path.role());
                     gcode += m_writer.extrude_arc_to_xy(
                             this->point_to_gcode(arc.end_point),
                             center_offset,
-                            e_per_mm * arc_length,
+                            dE,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
                             comment, path.is_force_no_extrusion());
                     check_and_insert_timelapse(arc.end_point);

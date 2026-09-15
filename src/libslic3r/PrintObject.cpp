@@ -1710,7 +1710,11 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "slowdown_start_acc"
             || opt_key == "slowdown_end_height"
             || opt_key == "slowdown_end_speed"
-            || opt_key == "slowdown_end_acc" ) {
+            || opt_key == "slowdown_end_acc"
+            // Orca: both features only affect G-code export
+            || opt_key == "small_area_infill_flow_compensation"
+            || opt_key == "small_area_infill_flow_compensation_model"
+            || opt_key == "wipe_before_external_loop" ) {
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else if (
                opt_key == "flush_into_infill"

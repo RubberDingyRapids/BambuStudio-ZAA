@@ -1043,6 +1043,10 @@ static std::vector<std::string> s_Preset_print_options {
 #endif /* HAS_PRESSURE_EQUALIZER */
     // Z Anti-Aliasing (ZAA)
     "zaa_enabled", "zaa_minimize_perimeter_height", "zaa_dont_alternate_fill_direction", "zaa_min_z",
+    // Orca: Small area infill flow compensation
+    "small_area_infill_flow_compensation", "small_area_infill_flow_compensation_model",
+    // Orca: Wipe before external loop
+    "wipe_before_external_loop",
     "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_object_first_layer_gap","support_interface_speed",
     "bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed", "outer_wall_acceleration",

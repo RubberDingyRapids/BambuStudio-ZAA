@@ -3251,6 +3251,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_start_height", "Seam");
         optgroup->append_single_option_line("seam_slope_gap", "Seam");
         optgroup->append_single_option_line("seam_slope_min_length", "Seam");
+        optgroup->append_single_option_line("wipe_before_external_loop", "Seam");
         optgroup->append_single_option_line("wipe_speed", "Seam");
         optgroup->append_single_option_line("role_base_wipe_speed", "Seam");
 
@@ -3281,6 +3282,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("zaa_minimize_perimeter_height");
         optgroup->append_single_option_line("zaa_min_z");
         optgroup->append_single_option_line("zaa_dont_alternate_fill_direction");
+
+        optgroup = page->new_optgroup(L("Small area flow compensation"), L"param_advanced");
+        optgroup->append_single_option_line("small_area_infill_flow_compensation");
+        optgroup->append_single_option_line("small_area_infill_flow_compensation_model");
 
         optgroup = page->new_optgroup(L("Wall generator"), L"param_wall");
         optgroup->append_single_option_line("wall_generator", "wall-generator");

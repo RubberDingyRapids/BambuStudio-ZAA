@@ -1196,6 +1196,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool, zaa_dont_alternate_fill_direction))
     ((ConfigOptionFloat, zaa_min_z))
     ((ConfigOptionFloat, zaa_minimize_perimeter_height))
+
+    // Orca: Small area infill flow compensation
+    ((ConfigOptionBool, small_area_infill_flow_compensation))
+    // Orca: de-retract slightly inside the model before starting an external perimeter
+    ((ConfigOptionBool, wipe_before_external_loop))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1413,6 +1418,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,   filament_dev_chamber_drying_time))
     ((ConfigOptionFloats,   filament_dev_drying_softening_temperature))
     ((ConfigOptionFloats,   filament_dev_drying_cooling_temperature))
+
+    // Orca: Small area infill flow compensation model
+    ((ConfigOptionStrings,  small_area_infill_flow_compensation_model))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

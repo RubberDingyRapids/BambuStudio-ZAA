@@ -4275,6 +4275,28 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.05));
 
+    // Orca: Small area infill flow compensation
+    def = this->add("small_area_infill_flow_compensation", coBool);
+    def->label = L("Small area flow compensation (beta)");
+    def->category = L("Quality");
+    def->tooltip = L("Enable flow compensation for small infill areas.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("small_area_infill_flow_compensation_model", coStrings);
+    def->label = L("Flow Compensation Model");
+    def->category = L("Quality");
+    def->tooltip = L("Flow Compensation Model, used to adjust the flow for small infill "
+                     "areas. The model is expressed as a comma separated pair of values for "
+                     "extrusion length and flow correction factor. Each pair is on a "
+                     "separate line, followed by a semicolon, in the following format: \"1.234, 5.678;\"");
+    def->mode = comAdvanced;
+    def->gui_flags = "serialized";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 15;
+    def->set_default_value(new ConfigOptionStrings{"0,0", "\n0.2,0.4444", "\n0.4,0.6145", "\n0.6,0.7059", "\n0.8,0.7619", "\n1.5,0.8571", "\n2,0.8889", "\n3,0.9231", "\n5,0.9520", "\n10,1"});
+
     def = this->add("layer_change_gcode", coString);
     def->label = L("Layer change G-code");
     def->tooltip = L("This gcode part is inserted at every layer change after lift z");
@@ -5292,6 +5314,19 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "mm";
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat{10});
+
+    // Orca: wipe (de-retract) inside the model before starting an external perimeter
+    def = this->add("wipe_before_external_loop", coBool);
+    def->label = L("Wipe before external loop");
+    def->category = L("Quality");
+    def->tooltip = L("To minimize the visibility of a potential over extrusion at the start of an external perimeter when "
+                     "printing with Outer/Inner or Inner/Outer/Inner wall print order, the de-retraction is performed slightly "
+                     "on the inside from the start of the external perimeter. That way any potential over extrusion is hidden "
+                     "from the outside surface.\n\n"
+                     "This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it "
+                     "is more likely that an external perimeter is printed immediately after a de-retraction move.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("wipe_speed", coPercent);
     def->label = L("Wipe speed");
